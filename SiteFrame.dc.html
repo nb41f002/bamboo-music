@@ -424,6 +424,7 @@ class Component extends DCLogic {
     a.addEventListener('ended', ()=>{ this.go(1, true); });
     a.addEventListener('play', ()=>{ this.setState({playing:true}); });
     a.addEventListener('pause', ()=>{ this.setState({playing:false}); this.duck(false); });
+    a.addEventListener('error', ()=>{ const e=a.error; console.warn('[SiteFrame] audio error code='+(e&&e.code)+' src='+this._src); if(this._src && this._retriedSrc!==this._src){ this._retriedSrc=this._src; const bust=this._src+(this._src.indexOf('?')>=0?'&':'?')+'cb='+Date.now(); a.src=bust; a.load(); const p=a.play(); if(p&&p.catch) p.catch(()=>{}); } });
   }
   loadTrack(i, autoplay){ const s=this.songs[i]; if(!s||!this.audio) return; const src=encodeURI(s.audio||('audio/'+String(s.id!=null?s.id:i).padStart(2,'0')+'.mp3')); if(this._src!==src){ this.audio.src=src; this._src=src; this.lineTimes=[]; } try{ this.audio.currentTime=0; }catch(_){} this._cur=0; this._activeLine=-1; this.lineEls={}; this.studyGroupEls={}; this._scenes=this.getScenes(i); this._sceneIdx=-1; this._sceneShownIdx=-1; this.resetLyricsScroll(); try{ this.setBackdrop(i); }catch(_){} this.forceUpdate(); if(autoplay) this.play(); }
   play(){ if(!this._src) this.loadTrack(this.state.activeIndex,false); const p=this.audio.play(); if(p&&p.catch) p.catch(()=>{}); window.dispatchEvent(new CustomEvent('siteframe:play',{detail:{id:this.uid}})); this.duck(true); }
