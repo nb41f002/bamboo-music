@@ -23,7 +23,7 @@
   html,body{margin:0;padding:0;height:100%;background:#0a0705;-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-touch-callout:none}
   @font-face{font-family:'HuiWen';src:url('fonts/HuiWenKai.ttf?v=2') format('truetype');font-weight:400 700;font-style:normal;font-display:swap}
   [data-sfscroll]::-webkit-scrollbar{height:0;width:0;display:none}
-  [data-sfscroll]{scrollbar-width:none}
+  [data-sfscroll]{scrollbar-width:none;-webkit-overflow-scrolling:touch}
   @keyframes sfFade{from{opacity:0}to{opacity:1}}
   @keyframes sfUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
   @keyframes sfUnroll{0%{transform:scaleX(.015);filter:blur(1.5px)}60%{filter:blur(0)}100%{transform:scaleX(1)}}
@@ -58,6 +58,7 @@
   .sf-mobile .sf-lyr-label{display:none !important}
   .sf-mobile .sf-b-amb{order:7 !important}
   .sf-mobile .sf-b-vol{display:none !important}
+  .sf-mobile .sf-b-volm{display:flex !important;order:8 !important}
   .sf-mobile .sf-cat-wrap{padding:18px 16px 14px !important}
   .sf-mobile .sf-cat-grid{grid-template-columns:repeat(2,1fr) !important;gap:12px !important;padding-bottom:86px !important}
   .sf-mobile .sf-cat-card{height:210px !important}
@@ -250,12 +251,24 @@
 
     <div class="sf-b-amb" onClick="{{ onToggleAmbient }}" title="環境配樂" style="display:flex;align-items:center;gap:7px;flex-shrink:0;color:var(--txt-dim,#b69b6f)">
       <div style="width:38px;height:38px;border:1px solid var(--line,rgba(212,169,78,.4));border-radius:3px;display:flex;align-items:center;justify-content:center;color:var(--amb,var(--txt-dim,#b69b6f))">
-        <svg width="17" height="17" viewBox="0 0 17 17" fill="currentColor"><path d="M3 6.5h2.5L9 3.5v10L5.5 10.5H3z"/><path d="M11 5.5c1.6 1.4 1.6 4.6 0 6" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="currentColor"><path d="M13.6 2.1 6.5 3.6a.6.6 0 0 0-.47.59v6.55a2.5 2.5 0 1 0 1.17 2.11V7.1l5.5-1.17v3.55a2.5 2.5 0 1 0 1.17 2.11V2.69a.6.6 0 0 0-.27-.5.6.6 0 0 0-.5-.09z"/></svg>
       </div>
     </div>
 
     <div class="sf-b-vol" style="display:flex;align-items:center;flex-shrink:0;width:72px">
       <input type="range" min="0" max="1" step="0.01" value="{{ volume }}" onInput="{{ onVolume }}" style="width:72px">
+    </div>
+
+    <div class="sf-b-volm" style="display:none;position:relative;align-items:center;flex-shrink:0">
+      <div onClick="{{ onToggleVolPop }}" title="音量" style="width:38px;height:38px;border:1px solid var(--line,rgba(212,169,78,.4));border-radius:3px;display:flex;align-items:center;justify-content:center;color:{{ volBtnColor }};background:{{ volBtnBg }}">
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="currentColor"><path d="M3 6.5h2.5L9 3.5v10L5.5 10.5H3z"/><path d="M11 5.5c1.6 1.4 1.6 4.6 0 6" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M12.8 3.8c2.6 2.3 2.6 7.1 0 9.4" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity=".65"/></svg>
+      </div>
+      <sc-if value="{{ volPopOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;right:0;bottom:48px;z-index:60;display:flex;align-items:center;gap:10px;padding:13px 15px;border-radius:4px;background:linear-gradient(180deg,#241a10,#17100a);border:1px solid var(--line,rgba(212,169,78,.45));box-shadow:0 12px 30px rgba(0,0,0,.6)">
+          <input type="range" min="0" max="1" step="0.01" value="{{ volume }}" onInput="{{ onVolume }}" style="width:138px">
+          <span style="font-size:11px;color:var(--txt-dim,#b69b6f);font-variant-numeric:tabular-nums;width:32px;text-align:right">{{ volPct }}</span>
+        </div>
+      </sc-if>
     </div>
   </div>
 
@@ -311,7 +324,7 @@ class Component extends DCLogic {
     this.state = {
       theme: (props && props.theme) || 'study',
       activeIndex: 0, playing:false, cur:0, dur:0, activeLine:-1,
-      lyricsOpen:false, catalogOpen:false, ambientOn:false, volume:0.9, playMode:'order', studyOpen:true
+      lyricsOpen:false, catalogOpen:false, ambientOn:false, volume:0.9, playMode:'order', studyOpen:true, volPopOpen:false
     };
     this.panels = []; this._hist=[]; this._bag=null; this._bgCur=null; this._pvTheme=this.state.theme; this._pvLyricsOpen=false; this._pvActiveIndex=this.state.activeIndex; this.lineTimes = []; this.needsRender = true; this._activeLine = -1; this.lineEls = {}; this.studyGroupEls = {}; this._pvStudyOpen = true;
     this.parallax = {x:0,y:0,tx:0,ty:0}; this.dragShiftTarget = 0; this.maxAniso = 4; this.isMobile = false;
@@ -435,7 +448,7 @@ class Component extends DCLogic {
     a.addEventListener('error', ()=>{ const e=a.error; console.warn('[SiteFrame] audio error code='+(e&&e.code)+' src='+this._src); if(this._src && this._retriedSrc!==this._src){ this._retriedSrc=this._src; const bust=this._src+(this._src.indexOf('?')>=0?'&':'?')+'cb='+Date.now(); a.src=bust; a.load(); const p=a.play(); if(p&&p.catch) p.catch(()=>{}); } });
   }
   loadTrack(i, autoplay){ const s=this.songs[i]; if(!s||!this.audio) return; const src=encodeURI(s.audio||('audio/'+String(s.id!=null?s.id:i).padStart(2,'0')+'.mp3')); if(this._src!==src){ this.audio.src=src; this._src=src; this.lineTimes=[]; } try{ this.audio.currentTime=0; }catch(_){} this._cur=0; this._activeLine=-1; this.lineEls={}; this.studyGroupEls={}; this._scenes=this.getScenes(i); this._sceneIdx=-1; this._sceneShownIdx=-1; this.resetLyricsScroll(); try{ this.setBackdrop(i); }catch(_){} this.forceUpdate(); if(autoplay) this.play(); }
-  play(){ if(!this._src) this.loadTrack(this.state.activeIndex,false); const p=this.audio.play(); if(p&&p.catch) p.catch(()=>{}); window.dispatchEvent(new CustomEvent('siteframe:play',{detail:{id:this.uid}})); this.duck(true); }
+  play(){ if(!this._src) this.loadTrack(this.state.activeIndex,false); this.ensureVolumeRoute(); const p=this.audio.play(); if(p&&p.catch) p.catch(()=>{}); window.dispatchEvent(new CustomEvent('siteframe:play',{detail:{id:this.uid}})); this.duck(true); }
   onTogglePlay = ()=>{ if(!this.audio) return; if(this.audio.paused) this.play(); else this.audio.pause(); };
   onPrev = ()=>{ this.go(-1); };
   onNext = ()=>{ this.go(1); };
@@ -447,7 +460,10 @@ class Component extends DCLogic {
   _bagNext(){ const n=this.songs.length; if(n<=1) return this.state.activeIndex; if(!this._bag||!this._bag.length){ this._bag=this._shuffleBag(n, this.state.activeIndex); } return this._bag.shift(); }
   _shuffleBag(n, avoid){ const a=[]; for(let i=0;i<n;i++) a.push(i); for(let i=n-1;i>0;i--){ const j=(Math.random()*(i+1))|0; const t=a[i]; a[i]=a[j]; a[j]=t; } if(n>1 && a[0]===avoid){ a.push(a.shift()); } return a; }
   onSeek = (e)=>{ const r=e.currentTarget.getBoundingClientRect(); const f=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)); if(this.audio&&this.audio.duration) this.audio.currentTime=f*this.audio.duration; };
-  onVolume = (e)=>{ const v=+e.target.value; if(this.audio) this.audio.volume=v; this.setState({volume:v}); };
+  onVolume = (e)=>{ const v=+e.target.value; if(this._volGain){ try{ this._volGain.gain.value=v; }catch(_){} if(this.audio){ try{ this.audio.volume=1; }catch(_){} } } else if(this.audio){ try{ this.audio.volume=v; }catch(_){} } this.setState({volume:v}); };
+  onToggleVolPop = ()=>{ this.ensureVolumeRoute(); this.setState(s=>({volPopOpen:!s.volPopOpen})); };
+  /* iOS 忽略 audio.volume，改經 WebAudio GainNode 控制音量 */
+  ensureVolumeRoute(){ if(this._volGain||this._volRouteFailed) return; try{ const ac=this.ensureCtx(); if(!ac||!this.audio) return; const src=ac.createMediaElementSource(this.audio); const g=ac.createGain(); g.gain.value=this.state.volume; src.connect(g); g.connect(ac.destination); this._mediaSrc=src; this._volGain=g; try{ this.audio.volume=1; }catch(_){} }catch(_){ this._volRouteFailed=true; } }
 
   computeLineTimes(){
     const s=this.songs[this.state.activeIndex]; const dur=this.audio? this.audio.duration:0;
@@ -464,7 +480,7 @@ class Component extends DCLogic {
 
   /* ---------- catalog ---------- */
   buildCatalog(){
-    this._catalog = this.songs.map((s,i)=>({ title:s.title, meta:(s.author?s.author+' · ':'')+s.dynasty, cover:s.cover, seal:s.seal, imgBg:'linear-gradient(180deg,rgba(24,16,9,.34) 0%,rgba(20,13,7,.58) 52%,rgba(10,7,3,.9) 100%), url(\"'+encodeURI(s.img||'')+'\") center/cover no-repeat', onSelect:()=>{ this.setState({catalogOpen:false}); this.setActive(i, true, true); } }));
+    this._catalog = this.songs.map((s,i)=>({ title:s.title, meta:(s.author?s.author+' · ':'')+s.dynasty, cover:s.cover, seal:s.seal, imgBg:'linear-gradient(180deg,rgba(24,16,9,.34) 0%,rgba(20,13,7,.58) 52%,rgba(10,7,3,.9) 100%), url(\"'+encodeURI(s.img||'')+'\") center/cover no-repeat', onSelect:()=>{ this.closeCatalog(i); } }));
   }
 
   /* ---------- three.js ---------- */
@@ -767,23 +783,25 @@ class Component extends DCLogic {
   onOpenLyrics = ()=>this.openLyrics();
   onToggleLyrics = ()=>{ if(this.state.lyricsOpen) this.setState({lyricsOpen:false}); else this.openLyrics(); };
   onCloseLyrics = ()=>this.setState({lyricsOpen:false});
-  onOpenCatalog = ()=>this.setState({catalogOpen:true, lyricsOpen:false});
-  onToggleCatalog = ()=>{ this.setState(s=>({ catalogOpen:!s.catalogOpen, lyricsOpen:false })); };
+  onOpenCatalog = ()=>{ this._lyricsWasOpen=this.state.lyricsOpen; this.setState({catalogOpen:true, lyricsOpen:false, volPopOpen:false}); };
+  onToggleCatalog = ()=>{ if(this.state.catalogOpen) this.closeCatalog(); else this.onOpenCatalog(); };
+  /* 關閉目錄時，若原本開著歌詞卷則恢復（研讀狀態隨 studyOpen 保留） */
+  closeCatalog(pickedIndex){ const back=this._lyricsWasOpen; this._lyricsWasOpen=false; if(typeof pickedIndex==='number') this.setActive(pickedIndex, true, true); if(back) this.openLyrics(); else this.setState({catalogOpen:false}); }
   onLyricsBackdrop = (e)=>{ if(e.target===e.currentTarget) this.setState({lyricsOpen:false}); };
-  onCatalogBackdrop = (e)=>{ if(e.target===e.currentTarget) this.setState({catalogOpen:false}); };
-  onCloseCatalog = ()=>this.setState({catalogOpen:false});
+  onCatalogBackdrop = (e)=>{ if(e.target===e.currentTarget) this.closeCatalog(); };
+  onCloseCatalog = ()=>this.closeCatalog();
   onToggleAmbient = ()=>{ const on=!this.state.ambientOn; this.setState({ambientOn:on}); if(on) this.startAmbient(); else this.stopAmbient(); this.applyTheme(this.state.theme); };
   onToggleStudy = ()=>{ this.setState(s=>({studyOpen:!s.studyOpen})); };
   onSetTheme = (t)=>{ if(t===this.state.theme) return; this.setState({theme:t}); };
 
-  layoutLyrics(){ const ov=this.lyricsOverlay, clip=this.lyricsClip, inner=this.lyricsInner, paper=this.lyricsPaper, pad=this.lyricsPad, stage=this.lyricsStage; if(!ov||!clip||!inner||!paper) return; const studyMobile=this.isMobile && this.state.studyOpen && this.hasStudy(); let sheetH=0; const studyEl=this.root && this.root.querySelector('.sf-study'); if(studyMobile){ sheetH=Math.round(Math.min(ov.clientHeight*0.38,250)); if(studyEl) studyEl.style.setProperty('height', sheetH+'px','important'); } else if(studyEl){ studyEl.style.removeProperty('height'); } const reserve=this.isMobile?(studyMobile?(sheetH+20):104):0; const headBottom=stage?stage.offsetTop:clip.offsetTop; const totalAvail=ov.clientHeight-headBottom-reserve-22; let sh=0, gap=0; if(stage){ gap=this.isMobile?12:16; const studyOn=this.state.studyOpen && this.hasStudy() && !this.isMobile; const want=this.isMobile?(studyMobile?Math.min(ov.clientHeight*0.15,112):Math.min(ov.clientHeight*0.28,230)):Math.min(ov.clientHeight*(studyOn?0.32:0.42),studyOn?310:410); const scrollMin=this.isMobile?(studyMobile?150:185):200; const maxStage=totalAvail-gap-scrollMin; sh=Math.max(studyMobile?64:96,Math.min(want,maxStage)); let sw=sh*16/9; const maxW=this.isMobile?(ov.clientWidth-48):940; if(sw>maxW){ sw=maxW; sh=sw*9/16; } stage.style.width=Math.round(sw)+'px'; stage.style.height=Math.round(sh)+'px'; stage.style.marginBottom=gap+'px'; } const avail=totalAvail-sh-gap; const fullH=Math.max(studyMobile?120:150,Math.min(avail,640)); this._lyricsFullH=fullH; inner.style.height=fullH+'px'; const paperH=Math.max(100,fullH-36); paper.style.height=paperH+'px'; if(pad){ const sp=Math.max(34,Math.round(paperH*0.44)); pad.style.paddingTop=sp+'px'; pad.style.paddingBottom=sp+'px'; } if(!this._lyricsAnimating){ clip.style.height=fullH+'px'; } }
-  scrollActiveLine(instant){ const paper=this.lyricsPaper; if(!paper) return; const al=this._activeLine; let target=0; if(al>=0){ const el=paper.querySelector('[data-idx="'+al+'"]'); if(el){ const off=Math.max(8,(paper.clientHeight-el.offsetHeight)/2); target=el.offsetTop - off; } } target=Math.max(0,target); if(instant){ try{ paper.scrollTo({top:target,behavior:'auto'}); }catch(_){} paper.scrollTop=target; return; } try{ paper.scrollTo({top:target,behavior:'smooth'}); }catch(_){ paper.scrollTop=target; } }
-  resetLyricsScroll(){ const pin=()=>{ const pp=this.lyricsPaper; if(pp){ try{ pp.scrollTo({top:0,left:0,behavior:'auto'}); }catch(_){} pp.scrollTop=0; } const sc=this.studyScroll; if(sc){ try{ sc.scrollTo({top:0,left:0,behavior:'auto'}); }catch(_){} sc.scrollTop=0; } }; pin(); requestAnimationFrame(pin); requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(this._activeLine<0) pin(); })); setTimeout(()=>{ if(this._activeLine<0) pin(); },120); setTimeout(()=>{ if(this._activeLine<0) pin(); },400); }
+  layoutLyrics(){ const ov=this.lyricsOverlay, clip=this.lyricsClip, inner=this.lyricsInner, paper=this.lyricsPaper, pad=this.lyricsPad, stage=this.lyricsStage; if(!ov||!clip||!inner||!paper) return; const barEl=this.root?this.root.querySelector('.sf-bar'):null; const barH=barEl?Math.round(barEl.getBoundingClientRect().height):92; ov.style.bottom=barH+'px'; const studyMobile=this.isMobile && this.state.studyOpen && this.hasStudy(); let sheetH=0; const studyEl=this.root && this.root.querySelector('.sf-study'); if(studyMobile){ sheetH=Math.round(Math.min(ov.clientHeight*0.38,250)); if(studyEl) studyEl.style.setProperty('height', sheetH+'px','important'); } else if(studyEl){ studyEl.style.removeProperty('height'); } const reserve=this.isMobile?(studyMobile?(sheetH+20):24):0; const headBottom=stage?stage.offsetTop:clip.offsetTop; const totalAvail=ov.clientHeight-headBottom-reserve-22; let sh=0, gap=0; if(stage){ gap=this.isMobile?12:16; const studyOn=this.state.studyOpen && this.hasStudy() && !this.isMobile; const want=this.isMobile?(studyMobile?Math.min(ov.clientHeight*0.15,112):Math.min(ov.clientHeight*0.28,230)):Math.min(ov.clientHeight*(studyOn?0.32:0.42),studyOn?310:410); const scrollMin=this.isMobile?(studyMobile?150:185):200; const maxStage=totalAvail-gap-scrollMin; sh=Math.max(studyMobile?64:96,Math.min(want,maxStage)); let sw=sh*16/9; const maxW=this.isMobile?(ov.clientWidth-48):940; if(sw>maxW){ sw=maxW; sh=sw*9/16; } stage.style.width=Math.round(sw)+'px'; stage.style.height=Math.round(sh)+'px'; stage.style.marginBottom=gap+'px'; } const avail=totalAvail-sh-gap; const fullH=Math.max(studyMobile?120:150,Math.min(avail,640)); this._lyricsFullH=fullH; inner.style.height=fullH+'px'; const paperH=Math.max(100,fullH-36); paper.style.height=paperH+'px'; if(pad){ const sp=Math.max(34,Math.round(paperH*0.44)); pad.style.paddingTop=sp+'px'; pad.style.paddingBottom=sp+'px'; } if(!this._lyricsAnimating){ clip.style.height=fullH+'px'; } }
+  scrollActiveLine(instant){ const paper=this.lyricsPaper; if(!paper) return; if(!instant && performance.now()<(this._noAutoScrollUntil||0)) return; const al=this._activeLine; let target=0; if(al>=0){ const el=paper.querySelector('[data-idx="'+al+'"]'); if(el){ const off=Math.max(8,(paper.clientHeight-el.offsetHeight)/2); target=el.offsetTop - off; } } target=Math.max(0,target); if(instant){ try{ paper.scrollTo({top:target,behavior:'auto'}); }catch(_){} paper.scrollTop=target; return; } try{ paper.scrollTo({top:target,behavior:'smooth'}); }catch(_){ paper.scrollTop=target; } }
+  resetLyricsScroll(){ this._noAutoScrollUntil=performance.now()+800; const pin=()=>{ const pp=this.lyricsPaper; if(pp){ try{ pp.scrollTo({top:0,left:0,behavior:'auto'}); }catch(_){} pp.scrollTop=0; } const sc=this.studyScroll; if(sc){ try{ sc.scrollTo({top:0,left:0,behavior:'auto'}); }catch(_){} sc.scrollTop=0; } }; pin(); requestAnimationFrame(()=>{ pin(); requestAnimationFrame(pin); }); setTimeout(pin,120); setTimeout(pin,320); setTimeout(pin,650); }
   applyStudyClass(){ const on = this.state.lyricsOpen && this.state.studyOpen && this.hasStudy() && !this.isMobile; if(this.root) this.root.classList.toggle('sf-study-on', on); }
   studyEls(){ const sc=this.studyScroll; const out={}; if(sc){ const list=sc.querySelectorAll('[data-note-line]'); for(let i=0;i<list.length;i++){ out[list[i].dataset.noteLine]=list[i]; } } return out; }
   activeStudyLine(){ const al=this._activeLine; if(al<0) return -1; const els=this.studyEls(); let best=-1; for(const k in els){ const n=+k; if(!isNaN(n) && n<=al && n>best) best=n; } return best; }
   paintStudy(){ const els=this.studyEls(); const asl=this.activeStudyLine(); for(const k in els){ const el=els[k]; if(!el||!el.style) continue; const active=(+k===asl); el.style.background=active?'rgba(212,169,78,.15)':'transparent'; el.style.borderLeftColor=active?'var(--gold,#d4a94e)':'transparent'; el.style.opacity=active?'1':'.72'; } }
-  scrollStudyLine(instant){ const sc=this.studyScroll; if(!sc) return; const asl=this.activeStudyLine(); const el=this.studyEls()[asl]; if(!el) return; let target=el.offsetTop - sc.clientHeight/2 + el.offsetHeight/2; target=Math.max(0,Math.min(target, sc.scrollHeight-sc.clientHeight)); try{ sc.scrollTo({top:target,behavior:instant?'auto':'smooth'}); }catch(_){ sc.scrollTop=target; } }
+  scrollStudyLine(instant){ const sc=this.studyScroll; if(!sc) return; if(!instant && performance.now()<(this._noAutoScrollUntil||0)) return; const asl=this.activeStudyLine(); const el=this.studyEls()[asl]; if(!el) return; let target=el.offsetTop - sc.clientHeight/2 + el.offsetHeight/2; target=Math.max(0,Math.min(target, sc.scrollHeight-sc.clientHeight)); try{ sc.scrollTo({top:target,behavior:instant?'auto':'smooth'}); }catch(_){ sc.scrollTop=target; } }
   hideVeil(){ if(this._veilHidden) return; this._veilHidden=true; try{ clearTimeout(this._veilTimer); }catch(_){} const v=this.veil; if(!v) return; v.style.opacity='0'; setTimeout(()=>{ if(this.veil) this.veil.style.display='none'; }, 1000); }
   getScenes(i){ const s=this.songs[i]||{}; if(Array.isArray(s.scenes)&&s.scenes.length){ return s.scenes.map(x=>({img:x.img||s.img||'', time:+x.time||0})).sort((a,b)=>a.time-b.time); } return [{img:(s.img||''), time:0}]; }
   computeSceneIndex(t){ const S=this._scenes||[]; if(!S.length) return -1; let idx=0; for(let i=0;i<S.length;i++){ if(S[i].time<=t+0.001) idx=i; else break; } return idx; }
@@ -817,7 +835,7 @@ class Component extends DCLogic {
       activeTitle:s.title||'', activeMeta:(s.author?s.author+' ｜ ':'')+(s.dynasty||''), activeBlurb:s.blurb||'',
       playing:this.state.playing, notPlaying:!this.state.playing,
       curStr:this.fmt(cur), durStr:this.fmt(dur), progressPct:pct.toFixed(2)+'%',
-      volume:this.state.volume,
+      volume:this.state.volume, volPopOpen:this.state.volPopOpen, onToggleVolPop:this.onToggleVolPop, volPct:Math.round((this.state.volume||0)*100)+'%', volBtnColor:this.state.volPopOpen?'#1a120a':'var(--txt-dim,#b69b6f)', volBtnBg:this.state.volPopOpen?'var(--gold,#d4a94e)':'transparent',
       lyricsOpen:this.state.lyricsOpen, catalogOpen:this.state.catalogOpen,
       lyricLines, idxLabel, themes, catalogItems:this._catalog||[], warmupChars:warm, hasStudy, studyPanelOn, studyGroups, studyChipStyle, onToggleStudy:this.onToggleStudy, setStudyScroll:this.setStudyScroll, setStudyGroup:this.setStudyGroup,
       onTogglePlay:this.onTogglePlay, onPrev:this.onPrev, onNext:this.onNext, onSeek:this.onSeek,
