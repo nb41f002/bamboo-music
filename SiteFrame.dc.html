@@ -833,7 +833,7 @@ class Component extends DCLogic {
     const _gm=new Map(); for(const n of studyNotes){ if(!_gm.has(n.l)) _gm.set(n.l,[]); _gm.get(n.l).push(n); }
     const studyGroups=[..._gm.entries()].sort((a,b)=>a[0]-b[0]).map(([line,arr])=>({ line, items: arr.map(n=>({t:n.t, y:n.y||'', d:n.d})) }));
     const studyChipStyle={ cursor:'none', fontFamily:"'HuiWen','Noto Serif TC',serif", fontSize:'12.5px', letterSpacing:'.2em', padding:'8px 15px', borderRadius:'2px', whiteSpace:'nowrap', fontWeight:this.state.studyOpen?700:400, color:this.state.studyOpen?'#1a120a':'var(--txt-dim,#b69b6f)', background:this.state.studyOpen?'var(--gold,#d4a94e)':'transparent', border:'1px solid var(--line,rgba(212,169,78,.45))' };
-    const zh=['','一','二','三','四','五','六','七','八','九','十']; const ni=this.state.activeIndex+1, nn=songs.length; const idxLabel=(zh[ni]?'其'+zh[ni]:'其'+ni)+' · 共'+(zh[nn]||nn)+'首';
+    const zh=['','一','二','三','四','五','六','七','八','九','十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','二十一','二十二','二十三','二十四','二十五','二十六','二十七','二十八','二十九','三十']; const ni=this.state.activeIndex+1, nn=songs.length; const idxLabel=(zh[ni]?'其'+zh[ni]:'其'+ni)+' · 共'+(zh[nn]||nn)+'首';
     const TN=[['archive','典藏'],['study','書房'],['mist','霧色']]; const themes=TN.map((p)=>({ key:p[0], label:p[1], onSelect:()=>this.onSetTheme(p[0]), style:this.themeChipStyle(p[0]===this.state.theme) }));
     const warm = songs.map(x=>(x.title||'')+(x.author||'')+(x.dynasty||'')+(x.cover||'')+(x.seal||'')+(x.blurb||'')).join('')+'竹簡樂府文言文歌曲集目錄環境配樂歌詞收卷起拖曳翻閱十篇點選正中展卷讀詞上一首下一首';
     return {
