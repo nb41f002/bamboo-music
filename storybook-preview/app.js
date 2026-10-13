@@ -1336,7 +1336,7 @@ function applyResize() {
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
   view.distance = compactReading()
-    ? Math.max(10.5, 8.7 / (2 * Math.tan(37 * Math.PI / 360) * camera.aspect))
+    ? Math.max(10.5, 9.7 / (2 * Math.tan(37 * Math.PI / 360) * camera.aspect))
     : Math.max(11, 9.6 / (camera.aspect * .67));
 }
 
