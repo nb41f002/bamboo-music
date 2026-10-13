@@ -11,10 +11,6 @@ body{
   background:radial-gradient(ellipse at 50% 40%,#382819 0,#160f09 58%,#0a0705 100%);
   color:var(--paper); font-family:HuiWen,'Noto Serif TC',serif;
 }
-body:before{
-  content:''; position:fixed; inset:0; pointer-events:none; z-index:30; opacity:.3;
-  background:repeating-linear-gradient(92deg,transparent 0 47px,#0000001c 48px 50px);
-}
 [hidden]{display:none!important}
 
 button{
@@ -106,7 +102,8 @@ body.reading #stage{right:min(33vw,420px)}
 }
 .paper{
   background:radial-gradient(ellipse at 30% 20%,#f3e9d6,#e9dab9);
-  color:var(--ink);padding:20px 24px 26px;overflow:auto;flex:1;
+  color:var(--ink);padding:20px 24px 26px;overflow:auto;flex:1;min-height:0;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
   box-shadow:inset 0 15px 18px -18px #392813b0,inset 0 -15px 18px -18px #392813b0,0 15px 38px #0005;
   border-left:1px solid var(--dim);border-right:1px solid var(--dim);
   scrollbar-width:thin;scrollbar-color:#af946e transparent;
@@ -315,4 +312,124 @@ body{height:100vh;height:100dvh;min-height:0}
   .bar{gap:6px}
   .bar-buttons{gap:6px}
   .bar-buttons button{padding:6px 9px}
+}
+
+/* Phone reading follows the page: long passages never sit behind a scroll rod
+   or the controls. Keep the illustration separate from its touch targets. */
+@media(max-width:760px) and (orientation:portrait),
+      (max-width:960px) and (max-height:560px) and (orientation:landscape){
+  html{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
+  body{height:auto;min-height:100vh;min-height:100dvh;overflow:visible;
+    grid-template-rows:auto minmax(300px,1fr) auto}
+  main{min-height:300px}
+  #stage{min-height:300px}
+  #canvas{position:absolute;inset:0 0 64px;height:auto}
+  #hotspots{inset:auto 10px 8px;display:flex;justify-content:center;
+    align-items:center;flex-wrap:wrap;gap:7px;min-height:48px}
+  #hotspots button{position:relative;left:auto!important;top:auto!important;
+    transform:none;flex:0 1 auto;max-width:100%;white-space:normal;
+    font-size:12px;line-height:1.5;padding:8px 11px;min-height:44px}
+  #hotspots button.done{opacity:1;color:#d7c29c;background:#251d14;
+    border-color:#8d7549}
+  #hotspots button.done:before{content:'✓';width:auto;height:auto;
+    color:#d7c29c;background:none;border-radius:0;font-size:11px}
+  #stage:has(#hotspots button:nth-child(4)) #canvas{bottom:112px}
+  body.reading main{display:flex;flex-direction:column;gap:12px}
+  body.reading #stage{position:relative;inset:auto;flex:none;
+    height:clamp(280px,42svh,360px);min-height:280px}
+  #reader{display:none}
+  body.reading #reader{display:flex;position:relative;inset:auto;
+    width:calc(100% - 28px);height:auto;max-height:none;margin:0 14px 18px;
+    transform:none;opacity:1;flex:none}
+  .paper{overflow:visible;flex:none;padding:16px 18px 24px;
+    -webkit-overflow-scrolling:auto;overscroll-behavior:auto}
+  .rod{flex:none;margin:0 -8px}
+  .read-head{position:relative;align-items:center}
+  .paper .sub{font-size:14px}
+  #focusBox blockquote{line-height:1.8;overflow-wrap:anywhere}
+  #focusBox p{line-height:1.9}
+  .bar{position:relative}
+  .bar-title small{font-size:12px}
+  .bar-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+  .bar-buttons button{min-width:0;letter-spacing:0;padding:8px 6px}
+  .bar-buttons .primary{grid-column:1 / -1;min-height:46px}
+  #toast{position:fixed;bottom:max(16px,env(safe-area-inset-bottom))}
+  body.plain-mode{grid-template-rows:auto 1fr}
+  body.plain-mode main{min-height:70dvh}
+  #plainRead{position:relative;inset:auto;overflow:visible}
+  .plain-inner{padding-top:84px}
+}
+@media(max-width:360px) and (orientation:portrait){
+  #canvas{bottom:112px}
+  #stage,body.reading #stage{min-height:320px}
+}
+
+/* Immersive revision: explicit reading, quiet controls, full-height paper stage. */
+#sceneProgress,#sceneCaption{display:none}
+#moreControls{position:relative;align-self:center}
+#moreControls>summary{color:var(--dim);font-size:13px;padding:10px 8px;min-height:44px;list-style:none;display:grid;place-items:center}
+#moreControls>summary::-webkit-details-marker{display:none}
+.more-panel{position:absolute;right:0;bottom:calc(100% + 12px);width:200px;padding:12px;display:grid;gap:6px;background:#211b15;border:1px solid #806a48;border-radius:10px;box-shadow:0 8px 30px #0007;z-index:30}
+.more-panel button,.more-panel a{display:block;text-align:left;min-height:44px;padding:10px;font-size:14px;color:#dfc99e;letter-spacing:0;text-decoration:none;border:0;background:transparent}
+.more-panel a:focus-visible{outline:2px solid #dbb873}
+@media(max-width:760px) and (orientation:portrait), (max-width:960px) and (max-height:560px) and (orientation:landscape){
+ html{height:100%;overflow:hidden}
+ body{height:100vh;height:100dvh;min-height:0;overflow:hidden;grid-template-rows:auto minmax(0,1fr) auto;background:radial-gradient(ellipse at 50% 42%,#40382c,#17130f 76%)}
+ .topbar{height:auto;min-height:52px;padding:6px max(14px,env(safe-area-inset-right)) 4px max(14px,env(safe-area-inset-left));padding-top:max(6px,env(safe-area-inset-top));align-items:center;gap:8px}
+ .brand{font-size:18px;letter-spacing:.14em}
+ .brand p,.brand small,.brand .trial-link,.chapter,#collection{display:none}
+ .seal{width:20px;height:23px;font-size:14px}
+ .top-actions{max-width:none;gap:0}
+ .top-actions button{font-size:12px;border:0;background:none;padding:8px;min-height:44px}
+ main,body.reading main{display:block;min-height:0;overflow:hidden}
+ #stage,body.reading #stage{position:absolute;inset:0;width:100%;height:100%;min-height:0;right:0;bottom:0}
+ #canvas,#stage:has(#hotspots button:nth-child(4)) #canvas{position:absolute;inset:26px 0 102px;width:100%;height:auto}
+ body:not([data-phase="act"]) #canvas{bottom:14px}
+ #sceneProgress{display:block;position:absolute;top:0;left:18px;right:18px;margin:0;text-align:center;font-size:12px;line-height:24px;letter-spacing:.13em;color:#bba883;pointer-events:none;z-index:1}
+ #sceneCaption{position:absolute;display:block;left:22px;right:22px;bottom:51px;margin:0;font-size:16px;line-height:1.7;color:#eadabd;text-align:center;max-height:55px;overflow:auto;scrollbar-width:thin}
+ body:not([data-phase="act"]) #sceneCaption{display:none}
+ #hotspots{position:absolute;inset:auto 12px 3px;min-height:44px;display:flex;justify-content:flex-start;flex-wrap:nowrap;gap:2px;overflow-x:auto;pointer-events:auto;scrollbar-width:none}
+ #hotspots button{flex:1 0 auto;min-height:44px;min-width:44px;white-space:nowrap;font-size:12px;line-height:1.4;padding:7px 10px;box-shadow:none;border:0;border-bottom:1px solid #7c69464d;border-radius:0;background:transparent;color:#cfbc98}
+ #hotspots button:before{display:none}
+ #hotspots button.done{background:transparent;color:#a89b84;border-color:#ad916369}
+ #hotspots button.done:before{display:none}
+ body.performing #hotspots{opacity:.5}
+ .bar{position:relative;padding:6px 10px max(6px,env(safe-area-inset-bottom));background:#17130f;border-top:1px solid #c6a77221;display:block;z-index:12}
+ .bar-title{display:none}
+ .bar-buttons{display:grid;grid-template-columns:46px 48px 46px minmax(82px,1fr) 44px;gap:3px;align-items:center}
+ .bar-buttons>button{padding:8px 2px;min-width:0;min-height:44px;font-size:12px;line-height:1.3;letter-spacing:0;border:0;background:none;box-shadow:none;color:#c5b18d}
+ .bar-buttons>.primary{grid-column:auto;background:#8d73572b;border:1px solid #ac8d573d;border-radius:22px;color:#ebdabc;min-height:40px}
+ .primary span{margin-left:3px}
+ #moreControls>summary{font-size:12px;padding:8px 2px}
+ #shelfPanel{left:24px;right:24px;top:auto;bottom:12px;width:auto;padding:10px 12px;background:#191510e8;border:1px solid #b69b6f30;border-radius:8px}
+ .shelf-head{font-size:12px;margin-bottom:6px}
+ #shelfList{gap:4px}
+ #shelfList b{font-size:16px}
+ #shelfList span{font-size:11px}
+ .shelf-off{display:none}
+ .shelf-pick{padding:9px 12px}
+ #coverTitle{top:38%}
+ #reader,body.reading #reader{position:fixed;inset:58px 10px max(68px,calc(env(safe-area-inset-bottom) + 62px));width:auto;height:auto;max-height:none;margin:0;z-index:20;flex-direction:column;transform:none;overflow:hidden;border-radius:10px;box-shadow:0 10px 40px #0007}
+ #reader{display:none}
+ body.reading #reader{display:flex}
+ #reader .rod{display:none}
+ #reader .paper{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 20px 24px;border:0;box-shadow:none;background:#eee2ca}
+ .read-head{position:sticky;top:0;background:#eee2ca;padding:8px 0;z-index:2}
+ .paper h2{font-size:23px;margin-top:14px}
+ .paper blockquote.orig{font-size:19px;line-height:1.9}
+ .paper p.plain{font-size:16px;line-height:1.9}
+ #focusBox{background:#d9c8a63b;border:0;border-left:2px solid #b99f75;padding:8px 12px}
+ #focusBox blockquote{font-size:19px!important}
+ .paper .sub{font-size:13px}
+ #toast{bottom:72px;font-size:12px;padding:8px 12px}
+ body.plain-mode{height:auto;min-height:100dvh;overflow:auto;grid-template-rows:auto 1fr}
+ html:has(body.plain-mode){overflow:auto}
+ body.plain-mode main{overflow:visible;min-height:80dvh}
+ .plain-inner{padding-top:78px}
+}
+@media(max-height:430px) and (orientation:landscape){
+ #canvas,#stage:has(#hotspots button:nth-child(4)) #canvas{inset:18px 0 84px}
+ #sceneCaption{bottom:45px;font-size:14px;max-height:38px}
+ .topbar{min-height:44px;padding-top:0;padding-bottom:0}
+ #reader,body.reading #reader{top:46px}
 }

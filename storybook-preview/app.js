@@ -11,6 +11,7 @@ const BB = { mountain: [156, 43, 1653, 856], peach: [24, 11, 1198, 1268], boat: 
 const CANCEL = { cancelled: true };
 
 let renderer, scene, camera, camLook, book, leftCover, turnLeaf, pageMat, reward, shelfGroup;
+const roomDecor = [];
 let tex = {}, acts = [], pageTex = [], quizPaper, leafBase = null, raf = 0, shelfLabels = [];
 let clock = 0, last = 0, pendingResize = true, toastTimer = 0, audioCtx = null, quiz = null, run = null;
 
@@ -19,6 +20,7 @@ const pointer = { x: 0, y: 0 };
 const ray = new (T ? T.Raycaster : class { })();
 const mouse = new (T ? T.Vector2 : class { })();
 const hotEls = new Map();
+const compactReading = () => matchMedia('(max-width:760px) and (orientation:portrait), (max-width:960px) and (max-height:560px) and (orientation:landscape)').matches;
 
 const S = {
   phase: 'loading', act: -1, busy: true, reading: false, framing: 'shelf',
@@ -279,10 +281,10 @@ function buildRoom() {
   const table = new T.Mesh(new T.CylinderGeometry(7.5, 8.1, .35, 72),
     new T.MeshStandardMaterial({ color: new T.Color(0x24170d).convertSRGBToLinear(), roughness: .85 }));
   table.position.y = -.55;
-  scene.add(table);
+  scene.add(table); roomDecor.push(table);
   const trim = new T.Mesh(new T.TorusGeometry(7.48, .012, 5, 90), new T.MeshBasicMaterial({ color: 0x796035 }));
   trim.rotation.x = Math.PI / 2; trim.position.y = -.365;
-  scene.add(trim);
+  scene.add(trim); roomDecor.push(trim);
 
   shelfGroup = new T.Group();
   shelfGroup.position.set(0, 0, -7.4);
@@ -367,7 +369,7 @@ function buildBook(coverMat) {
       new T.MeshStandardMaterial({ color: new T.Color(0x352614).convertSRGBToLinear(), roughness: .8 }));
     slip.position.set(side * (5.6 + i * .26), 1.4, -3.4 - i * .16);
     slip.rotation.z = side * .16;
-    scene.add(slip);
+    scene.add(slip); roomDecor.push(slip);
   }
 }
 
@@ -657,9 +659,11 @@ function buildAct4() {
 
 function poseAct(a, p) {
   a.p = p;
-  for (const it of a.items) {
-    const span = 1 - it.delay || 1;
-    const q = clamp((p - it.delay) / span, 0, 1);
+  const ordered = [...a.items].sort((a,b) => a.delay - b.delay);
+  for (const [index, it] of ordered.entries()) {
+    // One paper layer finishes rising before the next begins.
+    const q = ease(clamp(p * ordered.length - index, 0, 1));
+    it.anchor.visible = q > 0;
     it.q = q;
     it.anchor.scale.y = Math.max(.001, q);
     it.anchor.rotation.x = -(1 - q) * Math.PI * .48;
@@ -678,7 +682,7 @@ function applyAlpha(a) {
 
 async function popIn(a) {
   a.group.visible = true;
-  await tween(1350, t => poseAct(a, t));
+  await tween(a.items.length * 650, (t, raw) => poseAct(a, raw));
   poseAct(a, 1);
 }
 
@@ -711,6 +715,7 @@ function controls() {
   $('coverTitle').style.opacity = p === 'cover' && !S.busy ? '1' : '0';
   $('shelfPanel').hidden = p !== 'shelf';
 
+  document.body.classList.toggle('performing', !!run);
   const lock = S.busy;
   $('backShelf').disabled = lock || !['cover', 'act', 'quiz', 'finished'].includes(p);
   $('prev').disabled = lock || !(acting && S.act > 0 || p === 'quiz');
@@ -719,7 +724,7 @@ function controls() {
   $('study').disabled = lock || !['act', 'quiz', 'finished'].includes(p);
   $('auto').disabled = lock && !run || !['shelf', 'cover', 'act'].includes(p) && !run;
   $('autoStop').hidden = !run;
-  $('auto').textContent = run ? (run.paused ? '續播展演' : '暫停展演') : '自動展演';
+  $('auto').textContent = run ? (run.paused ? '續播' : '暫停') : '展演';
   $('primary').disabled = lock || p === 'loading' || p === 'plain';
 
   const label = PHASE_LABEL[p];
@@ -735,15 +740,22 @@ function controls() {
 function setStatus(title, hint) {
   $('phaseLabel').textContent = title;
   $('hint').textContent = hint;
+  $('sceneProgress').textContent = title;
 }
 
 function panel(open) {
+  const wasOpen = S.reading;
   S.reading = open;
   document.body.classList.toggle('reading', open);
   $('reader').inert = !open;
   $('study').setAttribute('aria-expanded', String(open));
-  $('study').textContent = open ? '收起研讀' : '研讀';
+  $('study').textContent = open ? '收起' : '研讀';
+  if (open) $('reader').querySelector('.paper').scrollTop = 0;
   resize();
+  if (compactReading() && open) {
+    $('moreControls').open = false;
+    requestAnimationFrame(() => $('dismissReader').focus({preventScroll:true}));
+  } else if (compactReading() && wasOpen) $('study').focus({preventScroll:true});
 }
 
 async function action(fn, autoToken = null) {
@@ -794,8 +806,10 @@ function renderAct(i) {
   $('focusBox').hidden = true;
   $('readLabel').textContent = a.label;
   $('readingHint').textContent = a.hint;
+  $('sceneCaption').textContent = a.lead;
   $('reading').hidden = false;
   $('quizHost').hidden = true;
+  $('reader').querySelector('.paper').scrollTop = 0;
 
   const chips = $('chips');
   chips.replaceChildren();
@@ -821,6 +835,7 @@ function syncChips() {
 }
 
 function showFocus(h) {
+  $('sceneCaption').textContent = h.original;
   $('focusOriginal').textContent = h.original;
   $('focusPlain').textContent = h.plain;
   $('focusBox').hidden = false;
@@ -854,7 +869,7 @@ async function triggerHotspot(id) {
   if (!data) return;
   sfx('tap');
   showFocus(data);
-  panel(true);
+  if (!compactReading()) panel(true);
   S.visited[S.act].add(id);
   syncChips();
   const f = a.fx;
@@ -944,7 +959,7 @@ async function enterAct(i, dir) {
   await popIn(acts[i]);
   setStatus(D.acts[i].label, D.acts[i].hint);
   // Keep the scene visible on a narrow portrait screen; the reader button remains available.
-  panel(!matchMedia('(max-width:760px) and (orientation:portrait)').matches);
+  panel(!compactReading());
 }
 
 async function openBook() {
@@ -1169,6 +1184,7 @@ async function autoStep(fn) {
 async function autoplay() {
   const token = run;
   const tempo = D.tempo;
+  if (compactReading()) panel(false);
   if (S.phase === 'shelf') { await autoStep(() => selectBook(0)); await autoWait(tempo.turn); }
   if (S.phase === 'cover') { await autoStep(openBook); await autoWait(tempo.enter); }
   for (let i = Math.max(0, S.act); i < D.acts.length; i++) {
@@ -1319,7 +1335,9 @@ function applyResize() {
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  view.distance = Math.max(11, 9.6 / (camera.aspect * .67));
+  view.distance = compactReading()
+    ? Math.max(10.5, 8.7 / (2 * Math.tan(37 * Math.PI / 360) * camera.aspect))
+    : Math.max(11, 9.6 / (camera.aspect * .67));
 }
 
 function placeHotLabels() {
@@ -1328,6 +1346,12 @@ function placeHotLabels() {
     return;
   }
   $('hotspots').classList.toggle('dim', false);
+  // The narrow portrait view uses a separate row of touch targets. Projecting
+  // all three anchors into a small scene made them overlap on mobile Safari.
+  if (compactReading()) {
+    for (const el of hotEls.values()) el.hidden = false;
+    return;
+  }
   const a = acts[S.act], rect = $('canvas').getBoundingClientRect(), v = new T.Vector3();
   for (const [id, el] of hotEls) {
     const h = a.hot[id];
@@ -1354,6 +1378,8 @@ function frame(now) {
   book.rotation.y = T.MathUtils.lerp(book.rotation.y, par * pointer.x * .055, .05);
   const d = view.distance, a = 1 - Math.exp(-dt * 3);
   const shelf = S.framing === 'shelf';
+  shelfGroup.visible = shelf;
+  for (const decoration of roomDecor) decoration.visible = shelf;
   const target = shelf
     ? new T.Vector3(par * pointer.x * .5, 3.1, d * .44)
     : new T.Vector3(par * pointer.x * .22, d * .48 + .7, d * .877);
@@ -1375,6 +1401,12 @@ function frame(now) {
 
 function bind() {
   const stage = $('canvas');
+  $('moreControls').addEventListener('click', e => {
+    if (e.target.closest('button, a')) $('moreControls').open = false;
+  });
+  document.addEventListener('pointerdown', e => {
+    if (!$('moreControls').contains(e.target)) $('moreControls').open = false;
+  });
   stage.addEventListener('pointermove', e => {
     const r = stage.getBoundingClientRect();
     pointer.x = clamp((e.clientX - r.left) / r.width * 2 - 1, -1, 1);
@@ -1466,6 +1498,7 @@ function bind() {
   document.addEventListener('keydown', e => {
     if (e.target instanceof HTMLInputElement) return;
     if (e.key === 'Escape') {
+      if ($('moreControls').open) { $('moreControls').open = false; return; }
       if (run) { stopAuto('exit'); return; }
       if (S.reading) panel(false);
       return;

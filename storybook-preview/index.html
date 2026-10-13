@@ -7,10 +7,10 @@
 <meta name="robots" content="noindex,nofollow">
 <title>竹簡樂府｜桃花源記立體書・手機試行版</title>
 <link rel="icon" href="original/favicon.png">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20261013-immersive3">
 <script defer src="vendor/three.min.js"></script>
 <script defer src="data.js"></script>
-<script defer src="app.js"></script>
+<script defer src="app.js?v=20261013-immersive3"></script>
 </head>
 <body data-phase="loading" data-busy="true">
 
@@ -25,14 +25,14 @@
   <div class="top-actions">
     <span id="collection" title="本次體驗收集的印記">藏印 <b>〇</b></span>
     <button id="sound" aria-pressed="false" title="播放原站〈桃花源記〉歌曲">聽曲</button>
-    <button id="sfx" aria-pressed="true" title="翻紙與點擊音效">音效</button>
-    <button id="motion" aria-pressed="false" title="減少動態：停止景物浮動">減少動態</button>
   </div>
 </header>
 
 <main>
+  <p id="sceneProgress" aria-live="polite"></p>
   <div id="stage" aria-label="可操作的工筆立體書">
     <div id="canvas"></div>
+    <p id="sceneCaption" aria-live="polite"></p>
     <div id="hotspots" aria-label="畫面上的景物按鈕"></div>
 
     <div id="coverTitle"><span>陶淵明</span><h1>桃花源記</h1><p>緣溪入林　忽逢桃源</p></div>
@@ -57,7 +57,7 @@
 
   <aside id="reader" aria-label="研讀卷軸" inert>
     <div class="rod"></div>
-    <div class="paper">
+    <div class="paper" tabindex="0" aria-label="原文、白話與字義研讀內容">
       <div class="read-head"><span id="readLabel">卷中研讀</span><button id="dismissReader" aria-label="收起研讀卷軸">收起 ×</button></div>
 
       <div id="reading">
@@ -103,14 +103,22 @@
 <footer class="bar">
   <div class="bar-title"><span id="phaseLabel">書架 · 選一冊</span><small id="hint">點書架上的桃花源記，或用右邊的書名按鈕。</small></div>
   <div class="bar-buttons">
-    <button id="backShelf" disabled>回書架</button>
-    <button id="prev" disabled>上一頁</button>
-    <button id="replay" disabled>重播本幕</button>
-    <button id="next" disabled>下一頁</button>
+    <button id="prev" disabled aria-label="上一幕">上一幕</button>
+    <button id="auto" disabled>展演</button>
     <button id="study" disabled aria-expanded="false">研讀</button>
-    <button id="auto" disabled>自動展演</button>
-    <button id="autoStop" hidden>退出展演</button>
     <button id="primary" class="primary" disabled>選書</button>
+    <details id="moreControls">
+      <summary aria-label="更多操作">選單</summary>
+      <div class="more-panel">
+        <button id="next" disabled>下一頁</button>
+        <button id="replay" disabled>重播本幕</button>
+        <button id="backShelf" disabled>回書架</button>
+        <button id="autoStop" hidden>退出展演</button>
+        <button id="sfx" aria-pressed="true">音效</button>
+        <button id="motion" aria-pressed="false">減少動態</button>
+        <a href="https://nb41f002.github.io/bamboo-music/">返回竹簡樂府</a>
+      </div>
+    </details>
   </div>
 </footer>
 
