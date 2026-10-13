@@ -527,7 +527,9 @@ function buildAct2() {
   a.cave = cave;
   a.update = (dt, idle) => {
     const f = a.fx;
-    cave.anchor.scale.x = .24 + .76 * f.caveOpen;
+    cave.anchor.scale.x = 1;
+    cave.anchor.rotation.y = -.18 * f.caveOpen;
+    cave.alpha = 1 - .4 * f.caveOpen;
     a.caveLight.material.opacity = f.light * .9;
     a.caveLight.scale.setScalar(.5 + f.caveOpen * .7);
     boat.anchor.position.x = boat.x + f.boatAside * .5;
