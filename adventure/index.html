@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5f2e9">
+<title>桃源行｜竹簡樂府文字冒險</title>
+<meta name="description" content="成為那位緣溪而行的漁人。走入桃林、穿過山口、與村人交談，讓你的選擇留在故事裡。">
+<link rel="icon" href="../favicon.png"><link rel="preload" as="image" href="./assets/forest.webp">
+<link rel="stylesheet" href="./style.css?v=20261015a">
+<script defer src="./story.js?v=20261015a"></script><script defer src="./app.js?v=20261015a"></script>
+</head>
+<body>
+<a class="skip" href="#reading">跳到故事</a>
+<header class="topbar"><a class="brand" href="../" aria-label="回竹簡樂府"><span class="seal" aria-hidden="true">竹</span><span>竹簡樂府</span></a>
+<div class="tools"><button id="music" class="tool" aria-label="播放桃花源記歌曲" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13M9 8l11-2"/><ellipse cx="6" cy="18" rx="3" ry="2"/><ellipse cx="17" cy="16" rx="3" ry="2"/></svg><span id="music-label">聽曲</span></button><button id="journal" class="tool"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h14a2 2 0 0 1 2 2v16H6a2 2 0 0 1-2-2V3Zm0 14h16M8 7h8M8 11h5"/></svg><span>行記</span></button></div></header>
+<main class="layout">
+<section class="landscape" aria-label="故事場景">
+<img id="scene" src="./assets/forest.webp" alt="桃花夾岸，漁舟停在青綠溪水邊" width="1536" height="1024" fetchpriority="high">
+<div class="art-wash"></div><div class="petals" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+<div class="scene-caption"><span class="scene-kicker">陶淵明 · 桃花源記</span><p id="scene-line">忽逢桃花林，夾岸數百步。</p><span id="scene-count">壹 / 入林</span></div>
+</section>
+<section class="reading" id="reading">
+<div id="welcome" class="welcome">
+<p class="eyebrow">竹簡樂府・文字冒險</p><h1>桃源行<span class="title-dot">。</span></h1>
+<p class="tagline">有些地方，<br>只有忘了路，才會遇見。</p>
+<div class="intro"><p>這一次，你是那位武陵漁人。</p><p>沿著落花入林，循微光探洞，<br>在陌生的村子裡，決定如何開口。</p></div>
+<button class="primary" id="start">循溪而行 <span aria-hidden="true">↗</span></button>
+<button class="resume" id="resume" hidden>接續上次的旅程 <span aria-hidden="true">→</span></button>
+<p class="duration">約 5–8 分鐘 <span>·</span> 入林　探洞　遇人</p>
+<p class="adaptation">依〈桃花源記〉改編。你的觀察與回答，會留在後續的故事裡。</p>
+</div>
+<article id="play" hidden>
+<nav class="chapters" aria-label="旅程進度"><span data-chapter="0">壹 入林</span><b></b><span data-chapter="1">貳 探洞</span><b></b><span data-chapter="2">參 遇人</span></nav>
+<div id="passage"><p class="eyebrow" id="moment"></p><h1 id="story-title" tabindex="-1"></h1><div id="prose" class="prose"></div><p id="echo" class="echo" hidden></p><div class="choices" id="choices" aria-label="選擇你的行動"></div><div id="ending" hidden></div></div>
+<div class="reading-tools"><button id="back">← 上一個選擇</button><button id="source">讀這一段原文 <span aria-hidden="true">↗</span></button></div>
+</article>
+<footer class="footnote"><span>桃源行・第一回</span><button id="about">作品說明</button></footer>
+</section>
+</main>
+<p id="status" class="status" role="status"></p>
+<dialog id="sheet" aria-labelledby="sheet-title"><div class="sheet-head"><h2 id="sheet-title"></h2><button id="close-sheet" aria-label="關閉視窗">×</button></div><div id="sheet-body"></div></dialog>
+<audio id="song" preload="none" loop src="../storybook-preview/original/song.mp3"></audio>
+<noscript><p class="noscript">請啟用 JavaScript 開始文字冒險。也可以<a href="../">回竹簡樂府聽曲</a>。</p></noscript>
+</body></html>
