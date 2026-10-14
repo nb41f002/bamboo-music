@@ -41,7 +41,7 @@ if(n.ending){
 const label=e('p','這一路，留下了什麼','end-label');
 const list=e('ul',undefined,'trace');
 const highlights=G.journal(state).filter(x=>x.note);
-const selected=[highlights.find(x=>x.chapter===0),highlights.filter(x=>x.chapter===1).pop(),highlights.filter(x=>x.chapter===2).pop()].filter(Boolean);
+const selected=[highlights.filter(x=>x.chapter===0).pop(),highlights.filter(x=>x.chapter===1).pop(),highlights.filter(x=>x.chapter===2).pop()].filter(Boolean);
 selected.forEach(x=>list.append(e('li',x.note)));
 const actions=e('div',undefined,'ending-actions');
 const retry=e('button','回到剛才，試另一個回答','primary');retry.onclick=()=>travel(G.replay(state.trail.slice(0,-1)));
@@ -61,7 +61,7 @@ box.append(e('p','進度只保存在目前的瀏覽器。清除網站資料或�
 };
 $('source').onclick=()=>{
 const n=G.node(state),src=G.sources[n.chapter];const box=e('div',undefined,'sheet-copy');
-box.append(e('p','陶淵明〈桃花源記〉・'+src.title),e('blockquote',n.original||src.quote),e('p',src.note),e('p','遊戲中的第一人稱情境、選項與對話為改編；以上單獨列出原文。','sheet-note'));sheet('回到原文',box);
+box.append(e('p','陶淵明〈桃花源記〉・'+src.title),e('blockquote',n.original||src.quote),e('p',n.originalNote||src.note),e('p','遊戲中的第一人稱情境、選項與對話為改編；以上單獨列出原文。','sheet-note'));sheet('回到原文',box);
 };
 $('about').onclick=()=>{
 const box=e('div',undefined,'sheet-copy');

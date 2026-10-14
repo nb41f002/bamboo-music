@@ -72,17 +72,17 @@ case 'endHistory':return N(2,'一席舊事',[
 '老人說，祖先為了避開秦時的戰亂，帶著妻子兒女與同鄉來到這裡。從此，便與外界斷了往來。',
 '「如今外面，是什麼世道？」他問。我才明白，我沿溪走過的那段路，竟隔開了這麼長的歲月。',
 '飯菜端上桌，我在席邊坐穩。這一次，我願意多坐一會兒。'
-],[],{ending:true,subtitle:'你讓來歷成為故事，也聽見了他們的來歷。',original:'自云先世避秦時亂，率妻子邑人來此絕境，不復出焉，遂與外人間隔。'});
+],[],{ending:true,subtitle:'你讓來歷成為故事，也聽見了他們的來歷。',originalNote:'「妻子」指妻子與兒女；「絕境」指與世隔絕的地方。',original:'自云先世避秦時亂，率妻子邑人來此絕境，不復出焉，遂與外人間隔。'});
 case 'endLife':return N(2,'門前春日',[
 '孩子把竹球輕輕推向我。屋後雞鳴，隔壁有人喊著開飯；老人坐在門前，看我們玩了一回，又一回。',
 f.observed?'我想起岸邊沒有雜樹的桃林。那時只覺奇異，此刻卻更想知道，這樣平靜的一天，村裡人已過了多久。':'我漸漸忘了濕氣、山路與先前的不安。雞鳴與人聲，原來可以這樣使人安心。',
 '「進來吃吧。」屋裡有人招呼。孩子拉了拉我的袖子。'
-],[],{ending:true,subtitle:'你從一場小遊戲，走近了桃源的日常。',original:'黃髮垂髫，並怡然自樂。'});
+],[],{ending:true,subtitle:'你從一場小遊戲，走近了桃源的日常。',originalNote:'「黃髮」指老人；「垂髫」指孩童；「怡然」是喜悅安適的樣子。',original:'黃髮垂髫，並怡然自樂。'});
 case 'endWater':return N(2,'田邊一碗水',[
 '老人讓孩子端來一碗水，自己坐到田埂另一側。我喝了一口，水很清涼。',
 '我們還沒有說很多話。遠處的飯香飄過來，他問我要不要再歇一會兒。',
 '我捧著碗，看著山口。也許下一次開口，可以從自己的來歷說起。'
-],[],{ending:true,subtitle:'你保留了距離，故事暫時停在田埂邊。',original:'見漁人，乃大驚，問所從來。具答之。'});
+],[],{ending:true,subtitle:'你保留了距離，故事暫時停在田埂邊。',originalNote:'「乃」在此表示於是；「具答之」是詳細回答他們。原作漁人詳細回答，本遊戲也提供暫緩說明的改編選擇。',original:'見漁人，乃大驚，問所從來。具答之。'});
 default:throw new Error('Unknown story node');
 }}
 function advance(s,id){const c=node(s).choices.find(c=>c.id===id);if(!c)throw new Error('Invalid choice');return {version:1,node:c.to,flags:{...s.flags,...c.set},trail:[...s.trail,id]};}
